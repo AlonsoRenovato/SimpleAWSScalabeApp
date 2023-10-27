@@ -155,3 +155,4 @@ Resources:
         - !Ref DBSecurityGroup
       DBSubnetGroupName: !Ref DBSubnetGroup
       MultiAZ: 'true'
+      DeletionProtection: false
