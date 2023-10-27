@@ -111,7 +111,7 @@ Resources:
             dnf install -y httpd
             systemctl enable httpd
             systemctl start httpd
-            echo '<html><h1>Cloudformation Rulez!!</h1></html>' > /var/www/html/index.html
+            echo '<html><h1>SUUUUUUUUUUUUUUU!!</h1></html>' > /var/www/html/index.html
 
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
