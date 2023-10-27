@@ -60,7 +60,6 @@ Resources:
 
   AttachGateway:
     Type: "AWS::EC2::VPCGatewayAttachment"
-    DeletionPolicy: Retain
     Properties:
       VpcId: !Ref MyVPC
       InternetGatewayId: !Ref MyInternetGateway
@@ -95,7 +94,6 @@ Resources:
 
   Ec2Instance:
     Type: AWS::EC2::Instance
-    DeletionPolicy: Retain
     Properties:
       DisableApiTermination: true
       ImageId: ami-041feb57c611358bd
@@ -148,7 +146,6 @@ Resources:
 
   RDSInstance:
     Type: 'AWS::RDS::DBInstance'
-    DeletionPolicy: Retain
     Properties:
       AllocatedStorage: '20'
       DBInstanceClass: 'db.t3.micro'
