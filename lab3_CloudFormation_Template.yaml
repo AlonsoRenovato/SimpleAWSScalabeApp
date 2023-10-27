@@ -95,7 +95,6 @@ Resources:
   Ec2Instance:
     Type: AWS::EC2::Instance
     Properties:
-      DisableApiTermination: true
       ImageId: ami-041feb57c611358bd
       InstanceType: t2.micro
       SubnetId: !Ref PublicSubnet
@@ -156,8 +155,3 @@ Resources:
         - !Ref DBSecurityGroup
       DBSubnetGroupName: !Ref DBSubnetGroup
       MultiAZ: 'true'
-
-  MyVolume:
-  Type: AWS::EC2::Volume
-  DeletionPolicy: Delete
-  Properties:
