@@ -5,6 +5,7 @@ Resources:
 
   MyVPC:
     Type: AWS::EC2::VPC
+    DeletionPolicy: Retain
     Properties:
       CidrBlock: 10.0.0.0/16
       EnableDnsSupport: true
@@ -15,6 +16,7 @@ Resources:
 
   PublicSubnet:
     Type: AWS::EC2::Subnet
+    DeletionPolicy: Retain
     Properties:
       VpcId: !Ref MyVPC
       AvailabilityZone: "us-east-1a"
@@ -26,6 +28,7 @@ Resources:
 
   PrivateSubnet:
     Type: AWS::EC2::Subnet
+    DeletionPolicy: Retain
     Properties:
       VpcId: !Ref MyVPC
       AvailabilityZone: "us-east-1a"
@@ -36,6 +39,7 @@ Resources:
 
   PublicSubnet2:
     Type: AWS::EC2::Subnet
+    DeletionPolicy: Retain
     Properties:
       VpcId: !Ref MyVPC
       AvailabilityZone: "us-east-1b"
@@ -47,6 +51,7 @@ Resources:
 
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
+    DeletionPolicy: Retain
     Properties:
       VpcId: !Ref MyVPC
       AvailabilityZone: "us-east-1b"
@@ -57,15 +62,18 @@ Resources:
 
   MyInternetGateway:
     Type: "AWS::EC2::InternetGateway"
+    DeletionPolicy: Retain
 
   AttachGateway:
     Type: "AWS::EC2::VPCGatewayAttachment"
+    DeletionPolicy: Retain
     Properties:
       VpcId: !Ref MyVPC
       InternetGatewayId: !Ref MyInternetGateway
 
   PublicRouteTable:
     Type: "AWS::EC2::RouteTable"
+    DeletionPolicy: Retain
     Properties:
       VpcId: !Ref MyVPC
       Tags:
@@ -74,6 +82,7 @@ Resources:
 
   PublicRoute:
     Type: "AWS::EC2::Route"
+    DeletionPolicy: Retain
     DependsOn: AttachGateway
     Properties:
       RouteTableId: !Ref PublicRouteTable
@@ -82,18 +91,21 @@ Resources:
 
   PublicSubnet1RouteTableAssociation:
     Type: "AWS::EC2::SubnetRouteTableAssociation"
+    DeletionPolicy: Retain
     Properties:
       SubnetId: !Ref PublicSubnet
       RouteTableId: !Ref PublicRouteTable
 
   PublicSubnet2RouteTableAssociation:
     Type: "AWS::EC2::SubnetRouteTableAssociation"
+    DeletionPolicy: Retain
     Properties:
       SubnetId: !Ref PublicSubnet2
       RouteTableId: !Ref PublicRouteTable
 
   Ec2Instance:
     Type: AWS::EC2::Instance
+    DeletionPolicy: Retain
     Properties:
       DisableApiTermination: true
       ImageId: ami-041feb57c611358bd
@@ -115,6 +127,7 @@ Resources:
 
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
+    DeletionPolicy: Retain
     Properties:
       GroupDescription: "Security group for my web server"
       GroupName: "Web server security group"
@@ -127,6 +140,7 @@ Resources:
 
   DBSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
+    DeletionPolicy: Retain
     Properties:
       GroupDescription: 'Permit access from Web Security Group'
       VpcId: !Ref MyVPC
@@ -138,6 +152,7 @@ Resources:
 
   DBSubnetGroup:
     Type: 'AWS::RDS::DBSubnetGroup'
+    DeletionPolicy: Retain
     Properties:
       DBSubnetGroupDescription: 'DB Subnet Group'
       SubnetIds: 
@@ -146,6 +161,7 @@ Resources:
 
   RDSInstance:
     Type: 'AWS::RDS::DBInstance'
+    DeletionPolicy: Retain
     Properties:
       AllocatedStorage: '20'
       DBInstanceClass: 'db.t3.micro'
