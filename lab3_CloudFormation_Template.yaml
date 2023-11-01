@@ -1,33 +1,158 @@
-AWSTemplateFormatVersion: "2010-09-09"                                                      
-Description: "Laboratorio 3"                                                                
-Resources:                                                                                  
-    Ec2Instance:                                                                            
-        Type: AWS::EC2::Instance                                                            
-        Properties:                                                                        
-            DisableApiTermination: true                                                    
-            ImageId: ami-041feb57c611358bd                                                  
-            InstanceType: t2.micro                                                          
-            SubnetId: subnet-08a62f1dc89bf33af                                              
-            SecurityGroupIds:                                                              
-                - !Ref SecurityGroup                                                        
-            Tags:                                                                          
-                - Key: Name                                                                
-                  Value: Web-Server                                                        
-            UserData:                                                                      
-                Fn::Base64: |                                                              
-                    #!/bin/bash                                                            
-                    dnf install -y httpd                                                    
-                    systemctl enable httpd                                                  
-                    systemctl start httpd                                                  
-                    echo '<html><h1>Proyecto final creado!!</h1></html>' > /var/www/html/index.html                                                                                      
-    SecurityGroup:                                                                          
-        Type: AWS::EC2::SecurityGroup                                                      
-        Properties:                                                                        
-            GroupDescription: "Security group for my web server"                            
-            GroupName: "Web server security group"                                          
-            SecurityGroupIngress:                                                          
-                - IpProtocol: tcp                                                          
-                  FromPort: 80                                                              
-                  ToPort: 80                                                                
-                  CidrIp: "0.0.0.0/0"                                                      
-            VpcId: vpc-0141a03f9c9f3d64e
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Laboratorio 3"
+
+Resources:
+
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: "Name"
+          Value: "lab-vpc"
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      AvailabilityZone: "us-east-1a"
+      CidrBlock: 10.0.0.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: "Name"
+          Value: "lab-subnet-public1-us-east-1a"
+
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      AvailabilityZone: "us-east-1a"
+      CidrBlock: 10.0.1.0/24
+      Tags:
+        - Key: "Name"
+          Value: "lab-subnet-private1-us-east-1a"
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      AvailabilityZone: "us-east-1b"
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: "Name"
+          Value: "lab-subnet-public2-us-east-1b"
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      AvailabilityZone: "us-east-1b"
+      CidrBlock: 10.0.3.0/24
+      Tags:
+        - Key: "Name"
+          Value: "lab-subnet-private2-us-east-1b"
+
+  MyInternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+
+  AttachGateway:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      VpcId: !Ref MyVPC
+      InternetGatewayId: !Ref MyInternetGateway
+
+  PublicRouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref MyVPC
+      Tags:
+        - Key: "Name"
+          Value: "lab-rtb-public"
+
+  PublicRoute:
+    Type: "AWS::EC2::Route"
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref MyInternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnet2RouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+
+  Ec2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-041feb57c611358bd
+      InstanceType: t2.micro
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds: 
+        - !Ref SecurityGroup
+      Tags:
+        - Key: Name
+          Value: Web-Server
+      UserData: 
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash
+            dnf install -y httpd
+            systemctl enable httpd
+            systemctl start httpd
+            echo '<html><h1>SUUUUUUUUUUUUUUU!!</h1></html>' > /var/www/html/index.html
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Security group for my web server"
+      GroupName: "Web server security group"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: "0.0.0.0/0"
+      VpcId: !Ref MyVPC
+
+  DBSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Permit access from Web Security Group'
+      VpcId: !Ref MyVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '3306'
+          ToPort: '3306'
+          SourceSecurityGroupId: !Ref SecurityGroup
+
+  DBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: 'DB Subnet Group'
+      SubnetIds: 
+        - !Ref PrivateSubnet
+        - !Ref PrivateSubnet2
+
+  RDSInstance:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      AllocatedStorage: '20'
+      DBInstanceClass: 'db.t3.micro'
+      Engine: 'mysql'
+      MasterUsername: 'main'
+      MasterUserPassword: 'lab-password'
+      VPCSecurityGroups:
+        - !Ref DBSecurityGroup
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      MultiAZ: 'true'
+      DeletionProtection: false
